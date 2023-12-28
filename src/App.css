@@ -1,0 +1,27 @@
+.page_header {
+  display : flex;
+  justify-content : space-between;
+  align-items : center;
+  margin-bottom : 10px;
+}
+
+.buttoncontainer {
+  padding: 15px 0 15px 0;
+}
+
+.btnmr { 
+  margin-right: 2px;
+}
+
+.table_layout {
+  table-layout: fixed;
+}
+
+.league_optioncontainer {
+  line-height: 38px;
+  text-align: center;
+}
+
+.mar15 {
+  margin-right: 15px;
+}
