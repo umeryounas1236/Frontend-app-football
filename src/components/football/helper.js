@@ -1,15 +1,32 @@
 import axios from "axios"
+import { requestPanel } from "../../services/axios";
 
 const panelUrl = 'http://localhost:5014';
 const scraperurl = 'http://localhost:5000'
 
 export const GetCountriesFromPanel = async () => {
-    const resp = await axios.get(`${panelUrl}/api/countries`);
+    const resp = await requestPanel({
+        url : `/api/countries`,
+        method : "get"
+    });
+
     return resp?.data?.content;
 }
 
 export const GetSeasonsFromPanel = async () => {
-    const resp = await axios.get(`${panelUrl}/api/seasons`);
+    const resp = await requestPanel({
+        url : `/api/seasons`,
+        method : "get"
+    });
+    return resp?.data?.content;
+}
+
+export const GetTournamentsFromPanel = async () => {
+    const resp = await requestPanel({
+        url : `/api/football/tournaments`,
+        method : "get"
+    });
+
     return resp?.data?.content;
 }
 
@@ -40,11 +57,7 @@ export const UpdateTournament = async (data) => {
     return resp.data?.data;
 }
 
-export const GetTournamentsFromPanel = async () => {
-    debugger;
-    const resp = await axios.get(`${panelUrl}/api/football/tournaments`);
-    return resp?.data;
-}
+
 
 export const GetDetailsFromFlash = async (tournament) => {
     debugger;
