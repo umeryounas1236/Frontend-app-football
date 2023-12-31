@@ -16,7 +16,6 @@ const League = () => {
 
   const ChangeGender = async (t,value) => {
     t.gender = value;
-    debugger;
     const update = await UpdateTournament(t);
     const tournaments = await GetTournamentsFromPanel();
     setPanelLeagues(tournaments);
@@ -51,6 +50,9 @@ const League = () => {
                   <tbody>
                     {
                       panelLeagues?.map(l => <tr 
+                        style={{
+                          backgroundColor : l?.gender === "female" && '#ee82ee'
+                        }}
                       key={l?.id}>
                         <td>{l?.id}</td>
                         <td>{l?.name}</td>
@@ -60,7 +62,8 @@ const League = () => {
                         <td>
                           <button type="button" 
                           style={{
-                            padding : '5px 5px 5px 5px'
+                            padding : '5px 5px 5px 5px',
+                            marginRight : '5px'
                           }}
                           className="btn btn-primary btn-sm" 
                           onClick={() => ChangeGender(l,"female")}>

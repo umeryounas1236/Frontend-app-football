@@ -34,7 +34,7 @@ const Aside = () => {
               </a>
             </li>
             <li>
-              <a href="/football/contestgroups">
+              <a href="/football/contest-groups">
                 <i className="bi bi-circle"></i>
                 <span>ContestGroups</span>
               </a>

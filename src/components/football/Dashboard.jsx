@@ -10,8 +10,8 @@ import {
   createRounds,
   postcontestparticipants,
 } from "./helper";
-import { orderBy } from "lodash";
-import axios from "axios";
+import { isEmpty, orderBy } from "lodash";
+import { requestPanel } from "../../services/axios";
 
 const Dashboard = () => {
   const [tournaments, setTournaments] = useState([]);
@@ -29,7 +29,7 @@ const Dashboard = () => {
       const data = await GetTournamentsFromPanel();
       setTournaments(
         orderBy(
-          data.content.map((p) => ({
+          data.map((p) => ({
             label: `${p?.name} (${p?.country?.name})`,
             value: p,
           })),
@@ -46,7 +46,6 @@ const Dashboard = () => {
   }, []);
 
   const CreateContest = async () => {
-    debugger;
     const obj = {
       name: flashData?.name,
       season: {
@@ -66,8 +65,6 @@ const Dashboard = () => {
   };
 
   const AddCompetitors = async () => {
-    debugger;
-
     const competitors = flashData?.participants?.map((c) => ({
       name: c?.name,
       country: {
@@ -85,12 +82,12 @@ const Dashboard = () => {
 
     for (const c of resp) {
       document.querySelector(`.contest-participants[data-name="${c?.name}"]`)?.setAttribute('panelid',c?.id);
+      document.querySelector(`.contest-participants[data-name="${c?.name}"]`).style.backgroundColor = '#84c61d';
     }
-    console.log(resp);
   };
 
   const addRounds = async () => {
-    debugger
+
     const rounds = flashData?.rounds?.map((r) => ({
       name: r?.name,
       mapping : {
@@ -98,7 +95,7 @@ const Dashboard = () => {
       },
       contestGroup: {
         id: currentContest?.id,
-      },
+      }
     }));
 
     const resp = await createRounds(rounds);
@@ -125,9 +122,70 @@ const Dashboard = () => {
     console.log(resp)
   }
 
+  const AddFixtures = async () => {
+    const matches = flashData?.fixtures?.map(m => ({
+      mapping : {
+        flashScore : m?.id?.replace('','')
+      },
+      dateTime : "",
+      status : "",
+      home : {
+        competitor : {
+          id : ''
+        }
+      },
+      away : {
+        competitor : {
+          id : ""
+        }
+      },
+      contestGroup : {
+        id : currentContest?.id
+      },
+      contestRound : { 
+        id : ""
+      }
+    }));
+  }
   const GetContestDetailFromFlash = async () => {
     const resp = await GetDetailsFromFlash(selectedTournament?.value);
     setFlashData(resp);
+
+    const seasonId = seasons?.find((s) => s?.name === resp?.season)?.id || 0;
+    const tournamentId = selectedTournament?.value?.id
+    
+    const contestbyseasonandtournament = await requestPanel({
+      url : `/api/football/contest-groups?tournamentId=${tournamentId}&seasonId=${seasonId}`,
+      method : "get"
+    });
+
+    debugger;
+
+    if(contestbyseasonandtournament?.content?.length){
+      let tempContest = contestbyseasonandtournament?.content?.[0];
+
+      resp.rounds = resp.rounds.map(r => {
+        let temp = tempContest?.contestRounds?.find(r => r.mapping?.flashScore === r?.name);
+        if(isEmpty(temp)){
+          return r;
+        }
+        else {
+          return {...r, isCreated : true}
+        }
+      });
+
+      resp.participants = resp.participants?.map(p => {
+        const isaAdded = tempContest?.contestParticipants?.find(c => c.competitor?.mapping?.flashScore === p?.mapping?.flashScore);
+        if(isEmpty(isaAdded)){
+          return p;
+        }
+        else{
+          return {...p, isAdded : true}
+        }
+      });
+      setCurrentContest(tempContest)
+    }
+
     console.log(resp);
   };
   return (
@@ -222,7 +280,11 @@ const Dashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
+                    <tr
+                    style={{
+                      backgroundColor : !isEmpty(currentContest) && '#84c61d'
+                    }}
+                    >
                       <th scope="row"></th>
                       <td>{flashData?.name}</td>
                       <td>{flashData?.season}</td>
@@ -270,14 +332,20 @@ const Dashboard = () => {
                     <tr>
                       <th scope="col">Provider ID</th>
                       <th scope="col">Name</th>
+                      <th scope="col">Is Added {!isEmpty(currentContest) && `(${currentContest?.name})`}</th>
                       <th scope="col">logo</th>
                     </tr>
                   </thead>
                   <tbody>
                     {flashData?.participants?.map((p) => (
-                      <tr className={`contest-participants`} data-name={p?.name} key={p?.name}>
+                      <tr className={`contest-participants`} 
+                      style={{
+                        backgroundColor : p?.isCreated && '#84c61d'
+                      }}
+                      data-name={p?.name} key={p?.name}>
                         <td>{p?.mapping?.flashScore}</td>
                         <td>{p?.name}</td>
+                        <td>{p?.isAdded}</td>
                         <td>
                           <img src={p?.img} alt={p?.name} />
                         </td>
@@ -320,7 +388,10 @@ const Dashboard = () => {
                   </thead>
                   <tbody>
                     {flashData?.rounds?.map((p) => (
-                      <tr key={p?.name}>
+                      <tr key={p?.name}
+                      style={{
+                        backgroundColor : p?.isCreated && '#84c61d'
+                      }}>
                         <td>{p?.name}</td>
                         <td>{p?.name}</td>
                       </tr>
@@ -347,6 +418,7 @@ const Dashboard = () => {
                       type="button"
                       className="btn btn-secondary btnmr"
                       id="addcontest"
+                      // onClick={() => AddResults()}
                     >
                       Add Results
                     </button>
@@ -395,6 +467,7 @@ const Dashboard = () => {
                       type="button"
                       className="btn btn-secondary btnmr"
                       id="addcontest"
+                       onClick={() => AddFixtures()}
                     >
                       Add Fixtures
                     </button>

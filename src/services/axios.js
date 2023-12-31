@@ -10,7 +10,7 @@ const panelOptions = axios.create({
 
 export const requestPanel = async (options) => {
     const onSuccess = resp => {
-        return resp;
+        return resp?.data;
     }
 
     const onError = err => {
@@ -32,7 +32,7 @@ export const requestPanel = async (options) => {
 
 export const requestScrapper = async (options) => {
     const onSuccess = resp => {
-        return resp;
+        return resp?.data;
     }
 
     const onError = err => {
